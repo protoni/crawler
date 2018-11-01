@@ -10,14 +10,16 @@ import time
 import os
 import sys
 from Utils.privateKeys import checkWIFkeyIsReal
-from linkHandler import getLinks
+from Utils.linkHandler import getLinks
+
+_bashGetWIF = os.getcwd() + "/scripts/getWIF.sh"
 
 links = getLinks()
 
-if len(links):
-    url =  str(sys.argv[1])
+if links:
+    url =  links
 
-    command = 'bash getWIF.sh ' + url
+    command = _bashGetWIF + ' ' + url
     keys = os.popen(command).read()
     print keys
     if keys is not '0':
@@ -33,7 +35,7 @@ if len(links):
     else:
         print "Error getting keys with url: " + url
 else:
-    print "Command line argument missing!"
+    print "No links found!"
 
 
 print("Exiting..")
