@@ -1,65 +1,39 @@
-from bs4 import BeautifulSoup
+#!/usr/bin/python
+
+# Give URL to scrape as command line parameter to this python script
+# and it will scrape all of the possible bitcoin WIF private keys from the site
+# and test if it is correct private key
+
+from pybitcoin import BitcoinPrivateKey
 import requests
-import re
+import time
+import os
+import sys
+from Utils.privateKeys import checkWIFkeyIsReal
+from linkHandler import getLinks
 
+links = getLinks()
 
-page_link = 'https://bitcoin.stackexchange.com/questions/44420/why-does-base58-wif-format-of-pk-have-5-prefix-the-standpoint-of-mathematics'
-WIF_length = 50
+if len(links):
+    url =  str(sys.argv[1])
 
-# Get the page source
-# Returns BeautifulSoup object containing page source rows
-def getPageSource(url):
-    page_response = requests.get(page_link, timeout=5)
-    page_content = BeautifulSoup(page_response.content, "html.parser")
-    results = page_content.body.find_all(string=re.compile('.*{0}.*'.format("")), recursive=True)
+    command = 'bash getWIF.sh ' + url
+    keys = os.popen(command).read()
+    print keys
+    if keys is not '0':
+        keys = keys.split()
+        print "Found: " + str(len(keys)) + " keys from URL: " + url
+        if len(keys) > 0:
+            print "Testing keys.."
+        for key in keys:
+            keyData = checkWIFkeyIsReal(key)
+            if(keyData):
+                print keyData
 
-    return results
-
-
-def checkWordIsLongerThan(word, num):
-    if len(word) > num:
-        return True
     else:
-        return False
+        print "Error getting keys with url: " + url
+else:
+    print "Command line argument missing!"
 
 
-# Get all words from page source row
-# Params: 
-#   dataSet - BeautifulSoup object of page source
-#   charCount - word lenght, disrecard everything lower that this number
-# Returns: list
-def getCorrectLengthLines(dataSet, charCount):
-    ret = []
-    for row in results:
-        splittedRow = row.split()
-        for col in splittedRow:
-            splittedCol = col.split()
-            if checkWordIsLongerThan(splittedCol[0], charCount):
-                ret.append(splittedCol[0])
-
-    return ret
-
-def getCleanWords(words, charCount):
-    cleanWords = []
-    for word in words:
-        splitted = re.split(r'[`\-=~!@#$%^&*()_+\[\]{};\'\\:"|<,./<>?]', word)
-        if checkWordIsLongerThan(splitted[0], charCount):
-            cleanWords.append(splitted[0])
-
-    return cleanWords
-
-def checkIfValidKey(word):
-    if word[0] == "5":
-        print ('Key: ' + word + " is valid!")
-
-def checkAllValidKeys(words):
-    for word in words:
-        checkIfValidKey(word)
-
-results = getPageSource(page_link)
-correctLengthLines = getCorrectLengthLines(results, WIF_length)
-cleanWords = getCleanWords(correctLengthLines, WIF_length)
-
-checkAllValidKeys(cleanWords)
-
-#print(cleanWords)
+print("Exiting..")

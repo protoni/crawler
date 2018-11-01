@@ -1,0 +1,1 @@
+https://bitcoin.stackexchange.com/questions/44420/why-does-base58-wif-format-of-pk-have-5-prefix-the-standpoint-of-mathematics
